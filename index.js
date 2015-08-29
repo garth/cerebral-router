@@ -1,7 +1,9 @@
 var urlMapper = require('url-mapper');
 var addressbar = require('addressbar');
 
-module.exports = function (controller, routes, options) {
+var wrappedRoutes = null;
+
+var router = function (controller, routes, options) {
 
   routes = routes || {};
   options = options || {};
@@ -11,7 +13,7 @@ module.exports = function (controller, routes, options) {
     state.set(urlStorePath, input.url);
   }
 
-  var wrappedRoutes = Object.keys(routes).reduce(function (wrappedRoutes, route) {
+  wrappedRoutes = Object.keys(routes).reduce(function (wrappedRoutes, route) {
 
     var signal = controller.signals[routes[route]];
 
@@ -64,4 +66,12 @@ module.exports = function (controller, routes, options) {
     addressbar.value = controller.get(urlStorePath);
   });
 
+  return router;
+
 };
+
+router.start = function () {
+  urlMapper(location.href, wrappedRoutes);
+};
+
+module.exports = router;

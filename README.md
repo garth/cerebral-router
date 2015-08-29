@@ -16,8 +16,8 @@ Router(controller, {
   '/': 'homeOpened',
   '/admin': 'adminOpened'
 }, {
-  onlyHash: false // Default is false
-});
+  onlyHash: true // Default is false
+}).start(); // Call start to map the current URL
 ```
 
 The Cerebral router allows you to trigger signals directly or with a url. It has the exact same effect. So:
