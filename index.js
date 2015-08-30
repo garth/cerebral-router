@@ -7,9 +7,10 @@ var router = function (controller, routes, options) {
 
   routes = routes || {};
   options = options || {};
-  urlStorePath = options.urlStorePath || 'url';
 
-  function setUrl (input, state) {
+  var urlStorePath = options.urlStorePath || 'url';
+
+  function setUrl (input, state, output) {
     state.set(urlStorePath, input.url);
   }
 
@@ -18,12 +19,13 @@ var router = function (controller, routes, options) {
     var signal = controller.signals[routes[route]];
 
     if (signal.chain[0] !== setUrl) {
-      signal.chain.unshift(setUrl);
+      signal.chain = [setUrl].concat(signal.chain);
     }
 
-    controller.signals[routes[route]] = wrappedRoutes[route] = function (input) {
+    controller.signals[routes[route]] = wrappedRoutes[route] = function () {
 
-      input = input || {};
+      var isSync = arguments[0] === true;
+      var input = isSync ? arguments[1] : arguments[0] || {};
       var params = route.match(/:.[^\/]*/g);
       var url = route;
 
@@ -48,7 +50,7 @@ var router = function (controller, routes, options) {
           return input;
         }, input);
       }
-      signal(input);
+      signal.apply(null, isSync ? [arguments[0], input, arguments[2]] : [input, arguments[1]]);
     };
 
     return wrappedRoutes;
@@ -71,7 +73,9 @@ var router = function (controller, routes, options) {
 };
 
 router.start = function () {
+
   urlMapper(location.href, wrappedRoutes);
+
 };
 
 module.exports = router;
